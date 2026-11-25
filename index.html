@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EKF2 Log Check: in-browser health check for PX4 flight logs</title>
+  <meta name="description" content="Drop a PX4 .ulg file and get PX4's own EKF2 innovation, fault and vibration checks in your browser. The log never leaves your machine." />
+  <script type="module" crossorigin src="./assets/index-YxWr1lwk.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-Bt24Zz26.css">
+</head>
+<body>
+  <header>
+    <h1>EKF2 Log Check</h1>
+    <p class="lead">Drop a PX4 <code>.ulg</code> flight log. You get PX4's own EKF2 health checks: innovation test ratios, rejected measurements, numerical faults, output-predictor tracking and accelerometer vibration.
+      <strong>The file is read in your browser and never uploaded.</strong></p>
+  </header>
+  <main>
+    <label id="drop" class="drop" for="file">
+      <input id="file" type="file" accept=".ulg" hidden />
+      <span>Drop a <code>.ulg</code> here or click to choose one</span>
+    </label>
+    <p id="status" class="status" role="status"></p>
+    <section id="report"></section>
+
+    <section id="offer" class="offer">
+      <h2>Need someone to read the log for you?</h2>
+      <p>The checks above flag <em>that</em> something is off, not <em>why</em>. A written expert review covers what the automatic checks can't: the likely cause of rejected innovations, sensor and mounting problems, estimator parameter suggestions, and what to change before the next flight.</p>
+      <p id="price" class="price"></p>
+      <p><a id="buy" class="buy" href="#" rel="noopener">Order an expert log review</a></p>
+    </section>
+
+    <section class="about">
+      <h2>What is checked, and where the thresholds come from</h2>
+      <ul>
+        <li><strong>Innovation test ratios</strong> (height, magnetometer, velocity, position, airspeed, height above ground): share of in-air samples between 0.5 and 1. Warning above 5 %, fail above 50 %. Source: PX4 <code>Tools/ecl_ekf/check_level_dict.csv</code>.</li>
+        <li><strong>Rejected measurements</strong> (<code>estimator_status_flags.reject_*</code>, <code>fs_bad_mag_*</code>): any in-air rejection fails (1 % for height above ground and optical flow). Same source.</li>
+        <li><strong>Output predictor tracking error</strong>: median warning levels 8e-3 rad, 0.05 m/s, 0.15 m. Same source.</li>
+        <li><strong>EKF numerical faults</strong>: any non-zero <code>filter_fault_flags</code> fails. Same source.</li>
+        <li><strong>Accelerometer vibration</strong>: in-air peak of <code>vehicle_imu_status.accel_vibration_metric</code> against the 4.905 / 9.81 m/s² background bands drawn by PX4 Flight Review. Flight Review only draws the bands; grading the peak as Pass / Warning / Fail is this tool's choice.</li>
+      </ul>
+      <p>The analysis is a TypeScript port of PX4's <code>Tools/ecl_ekf</code> scripts (BSD-3-Clause), with the same airtime detection: at least 5 s of flight, with 5 s trimmed at take-off and landing for height and magnetometer checks. Not ported: PX4's IMU-bias check, which reads <code>estimator_states.states[10..15]</code> and has not been verified against the current EKF2 state layout, and its vibration check, which reads <code>gyro_coning_vibration</code>. The recent PX4 logs checked during development don't contain that field, so upstream skips all three vibration metrics. Only EKF instances that log both <code>estimator_status</code> and <code>estimator_status_flags</code> are analysed.</p>
+      <p class="muted">Independent tool, not affiliated with or endorsed by PX4 or the Dronecode Foundation. Results are a screening aid, not an airworthiness assessment. <a href="./THIRD_PARTY_NOTICES.txt">Third-party notices (BSD-3-Clause)</a>.</p>
+    </section>
+  </main>
+</body>
+</html>
